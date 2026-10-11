@@ -1,0 +1,534 @@
+{
+ "secret": "rk_test_parity_0123456789",
+ "keys": [
+  {
+   "key": "password",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "Password",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "userPassword",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "user_password",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "api_key",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "apiKey",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "API-KEY",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "x-api-key",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "privateKey",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "private_key",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "access_key",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "accessKey",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "secret_key",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "key",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "Key",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "keys",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "monkey",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "token",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "accessToken",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "refresh_token",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "authorization",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "cookie",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "sessionId",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "session",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "cpf",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "card",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "cardNumber",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "cvv",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "pin",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "otp",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "pinned",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "spinner",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "signature",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "jwt",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "credential",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "credentials",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "auth",
+   "sensitive": true,
+   "lowEntropy": false
+  },
+  {
+   "key": "author",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "authority",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "passport",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "bypass",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "secretary",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "senha",
+   "sensitive": true,
+   "lowEntropy": true
+  },
+  {
+   "key": "total",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "name",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "email",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "XMLHttpRequest",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "api2Key",
+   "sensitive": false,
+   "lowEntropy": false
+  },
+  {
+   "key": "",
+   "sensitive": false,
+   "lowEntropy": false
+  }
+ ],
+ "headers": [
+  {
+   "name": "x-api-key",
+   "sensitive": true
+  },
+  {
+   "name": "x-auth-token",
+   "sensitive": true
+  },
+  {
+   "name": "x-client-secret",
+   "sensitive": true
+  },
+  {
+   "name": "x-request-id",
+   "sensitive": false
+  },
+  {
+   "name": "authorization",
+   "sensitive": true
+  },
+  {
+   "name": "cookie",
+   "sensitive": true
+  },
+  {
+   "name": "x-key",
+   "sensitive": false
+  },
+  {
+   "name": "x-foo-key",
+   "sensitive": true
+  },
+  {
+   "name": "X-Custom-Secret",
+   "sensitive": true
+  },
+  {
+   "name": "content-type",
+   "sensitive": false
+  },
+  {
+   "name": "x--token",
+   "sensitive": true
+  }
+ ],
+ "credentials": [
+  {
+   "value": "Bearer abcdefghijklmnopqrstuv",
+   "credential": true
+  },
+  {
+   "value": "bearer abc",
+   "credential": true
+  },
+  {
+   "value": "Basic dXNlcjpwYXNz",
+   "credential": true
+  },
+  {
+   "value": "Token 1234567890abcdef",
+   "credential": true
+  },
+  {
+   "value": "Digest x",
+   "credential": true
+  },
+  {
+   "value": "ApiKey k1",
+   "credential": true
+  },
+  {
+   "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature",
+   "credential": true
+  },
+  {
+   "value": "eyJshort.eyJ.x",
+   "credential": false
+  },
+  {
+   "value": "plain value",
+   "credential": false
+  },
+  {
+   "value": "",
+   "credential": false
+  }
+ ],
+ "masks": [
+  {
+   "value": "hunter2",
+   "reveal": true,
+   "masked": "••• #76905b8c"
+  },
+  {
+   "value": "hunter2-hunter2-long",
+   "reveal": true,
+   "masked": "hunt…long #bc371786"
+  },
+  {
+   "value": "hunter2-hunter2-long",
+   "reveal": false,
+   "masked": "••• #bc371786"
+  },
+  {
+   "value": "abcdefghijkl",
+   "reveal": true,
+   "masked": "••• #a6d56a7e"
+  },
+  {
+   "value": "abcdefghijklm",
+   "reveal": true,
+   "masked": "abcd…jklm #1d0ca232"
+  },
+  {
+   "value": "Bearer abcdefghijklmnopqrstuv",
+   "reveal": true,
+   "masked": "Bearer abcd…stuv #86804204"
+  },
+  {
+   "value": "Basic short",
+   "reveal": true,
+   "masked": "Basic ••• #3c57cd27"
+  },
+  {
+   "value": 123456,
+   "reveal": true,
+   "masked": "••• #d4c12edc"
+  },
+  {
+   "value": 12.5,
+   "reveal": true,
+   "masked": "••• #f61be4ab"
+  },
+  {
+   "value": 100,
+   "reveal": true,
+   "masked": "••• #c244f4ca"
+  },
+  {
+   "value": true,
+   "reveal": true,
+   "masked": "••• #36c76d52"
+  },
+  {
+   "value": {
+    "a": 1,
+    "b": "x"
+   },
+   "reveal": true,
+   "masked": "{\"a\"…\"x\"} #c1d7eb61"
+  },
+  {
+   "value": [
+    1,
+    "two"
+   ],
+   "reveal": true,
+   "masked": "••• #b016db50"
+  },
+  {
+   "value": "acentuação çãõ €",
+   "reveal": true,
+   "masked": "acen…ãõ € #eb11926f"
+  },
+  {
+   "value": "😀 emoji value long enough",
+   "reveal": true,
+   "masked": "😀 e…ough #a7fcc3ef"
+  }
+ ],
+ "deep": {
+  "input": {
+   "user": {
+    "name": "Ana",
+    "password": "segredo-muito-longo",
+    "apiKey": "sk_live_abcdefghijklmnop",
+    "cpf": "12345678900",
+    "token": "",
+    "nested": [
+     {
+      "authorization": "Bearer abcdefghijklmnop"
+     },
+     "Bearer abcdefghijklmnopqrstu",
+     "texto"
+    ]
+   },
+   "total": 10,
+   "list": [
+    1,
+    2
+   ],
+   "session": null
+  },
+  "output": {
+   "user": {
+    "name": "Ana",
+    "password": "••• #4adb6c8c",
+    "apiKey": "sk_l…mnop #0437c6ce",
+    "cpf": "••• #55b4a5a4",
+    "token": "",
+    "nested": [
+     {
+      "authorization": "Bearer abcd…mnop #e913e09e"
+     },
+     "Bearer abcd…rstu #5adf0a3e",
+     "texto"
+    ]
+   },
+   "total": 10,
+   "list": [
+    1,
+    2
+   ],
+   "session": null
+  }
+ },
+ "urls": [
+  {
+   "url": "/pedidos?page=2",
+   "masked": "/pedidos?page=2"
+  },
+  {
+   "url": "/reset?token=abcdefghijklmnopqrstu&page=2",
+   "masked": "/reset?token=abcd%E2%80%A6rstu+%23c6d89e8f&page=2"
+  },
+  {
+   "url": "/x?api_key=sk_live_51HxQabcdefghijk&q=a+b&empty=",
+   "masked": "/x?api_key=sk_l%E2%80%A6hijk+%239a25e1b9&q=a+b&empty="
+  },
+  {
+   "url": "/x?pin=1234&name=jo%C3%A3o",
+   "masked": "/x?pin=%E2%80%A2%E2%80%A2%E2%80%A2+%2324a82861&name=jo%C3%A3o"
+  },
+  {
+   "url": "/x?password=&a=1",
+   "masked": "/x?password=&a=1"
+  },
+  {
+   "url": "/x",
+   "masked": "/x"
+  },
+  {
+   "url": "/x?q=%20space&token=tok_123456789012",
+   "masked": "/x?q=+space&token=tok_%E2%80%A69012+%23ae1f61a2"
+  }
+ ],
+ "paths": [
+  {
+   "path": "/reset/s3cr3t-reset-token-value-123456",
+   "params": {
+    "token": "s3cr3t-reset-token-value-123456"
+   },
+   "masked": "/reset/s3cr…3456 #fda5433e"
+  },
+  {
+   "path": "/keys/ak_live_abcdefghijklmnop/rotate",
+   "params": {
+    "api_key": "ak_live_abcdefghijklmnop"
+   },
+   "masked": "/keys/ak_l…mnop #9e4adadd/rotate"
+  },
+  {
+   "path": "/orders/42",
+   "params": {
+    "id": "42"
+   },
+   "masked": "/orders/42"
+  },
+  {
+   "path": "/pin/1234",
+   "params": {
+    "pin": "1234"
+   },
+   "masked": "/pin/••• #24a82861"
+  },
+  {
+   "path": "/a/caf%C3%A9-secret-token",
+   "params": {
+    "token": "café-secret-token"
+   },
+   "masked": "/a/café…oken #d4c54870"
+  }
+ ]
+}

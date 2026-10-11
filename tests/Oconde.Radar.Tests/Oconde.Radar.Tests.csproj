@@ -8,6 +8,9 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" PrivateAssets="all" />
     <ProjectReference Include="../Oconde.Radar.Testing/Oconde.Radar.Testing.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="redaction-vectors.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' != 'net48'">
     <ProjectReference Include="../../src/Oconde.Radar/Oconde.Radar.csproj" />
   </ItemGroup>
