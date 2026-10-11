@@ -43,6 +43,8 @@ namespace Oconde.Radar.Serialization
             if (!type.IsValueType) seen.Add(value);
             try
             {
+                if (value is JsonObject record) return VisitDictionary(record.Select(entry => new KeyValuePair<object?, object?>(entry.Key, entry.Value)), depth, seen, budget);
+                if (value is JsonArray array) return VisitSequence(array, depth, seen, budget);
                 var request = RequestSummary(value);
                 if (request != null) return request;
                 if (value is IDictionary dictionary) return VisitDictionary(EntriesOf(dictionary), depth, seen, budget);

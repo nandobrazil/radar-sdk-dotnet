@@ -13,7 +13,7 @@ namespace Oconde.Radar.Tests
     {
         private static readonly JsonElement Vectors = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "redaction-vectors.json"))).RootElement;
 
-        static RedactionParityTests()
+        public RedactionParityTests()
         {
             Redactor.SetFingerprintSecret(Vectors.GetProperty("secret").GetString());
         }
