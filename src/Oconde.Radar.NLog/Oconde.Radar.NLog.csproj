@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net35;net45;netstandard2.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageId>Oconde.Radar.NLog</PackageId>
+    <Description>Target do NLog que manda os eventos e as exceções para o Radar.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="4.7.15" />
+    <ProjectReference Include="../Oconde.Radar/Oconde.Radar.csproj" />
+  </ItemGroup>
+</Project>

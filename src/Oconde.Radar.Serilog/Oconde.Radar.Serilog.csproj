@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageId>Oconde.Radar.Serilog</PackageId>
+    <Description>Sink do Serilog que manda os eventos e as exceções para o Radar.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <ProjectReference Include="../Oconde.Radar/Oconde.Radar.csproj" />
+  </ItemGroup>
+</Project>

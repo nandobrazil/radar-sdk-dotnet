@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net35;net45;netstandard2.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageId>Oconde.Radar.Log4Net</PackageId>
+    <Description>Appender do log4net que manda os eventos e as exceções para o Radar.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.17" />
+    <ProjectReference Include="../Oconde.Radar/Oconde.Radar.csproj" />
+  </ItemGroup>
+</Project>

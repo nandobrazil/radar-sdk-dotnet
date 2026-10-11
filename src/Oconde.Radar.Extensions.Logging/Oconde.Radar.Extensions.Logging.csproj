@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageId>Oconde.Radar.Extensions.Logging</PackageId>
+    <Description>Provider do Microsoft.Extensions.Logging que manda os logs e as exceções para o Radar.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
+    <ProjectReference Include="../Oconde.Radar/Oconde.Radar.csproj" />
+  </ItemGroup>
+</Project>

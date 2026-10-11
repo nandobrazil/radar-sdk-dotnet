@@ -1,0 +1,33 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Version>0.1.0</Version>
+    <Authors>Fernando Conde</Authors>
+    <Copyright>Copyright (c) 2026 Fernando Conde</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://radar.oconde.dev/docs/sdk/dotnet/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nandobrazil/radar-sdk-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>radar;monitoring;errors;logging;observability;oconde</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Deterministic>true</Deterministic>
+    <DebugType>embedded</DebugType>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Oconde.Radar.snk</AssemblyOriginatorKeyFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+    <RadarPublicKey>0024000004800000940000000602000000a4000052534131000400000100010097a23c26b51cee89d63293935c545e00b28ac90f355f9300a83dbc30e3de4970c04f0ed9c6de444bf00657e2688c7259466a05c3c8317d84a27dbf2fdc36c51e41a43504386a72d6562374289ed6517ec40b3da55f55a8784e88ff8c33f034a251a9f6c538deb1282230fd52f6edc5fe95a457623a153bee0f1278956f9bdf89</RadarPublicKey>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net3')) Or $(TargetFramework.StartsWith('net4'))">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+</Project>

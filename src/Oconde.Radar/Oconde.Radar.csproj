@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net35;net45;netstandard2.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageId>Oconde.Radar</PackageId>
+    <Description>SDK do Radar para .NET: erros com a pilha e o código em volta, logs, contexto por requisição, tarefas agendadas e mascaramento de dados sensíveis. Do .NET Framework 3.5 ao .NET 10, sem dependências.</Description>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net35' Or '$(TargetFramework)' == 'net45'">
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Oconde.Radar.Tests" Key="$(RadarPublicKey)" />
+  </ItemGroup>
+</Project>
