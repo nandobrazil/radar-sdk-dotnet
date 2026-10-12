@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -237,5 +238,70 @@ namespace Oconde.Radar.Tests
             client.Close(TimeSpan.Zero);
             client.Info("depois de fechar");
         }
-    }
+    
+        private static IEnumerable<int> RowsThatFail()
+        {
+            yield return 1;
+            throw new InvalidOperationException("a coleção mudou");
+        }
+
+        [Fact]
+        public void KeepsEventsWhoseAttributesFailWhileBeingRead()
+        {
+            using (var server = new FakeIngest())
+            {
+                var client = TestClients.For(server);
+                var error = SampleErrors.Caught(SampleErrors.LoadOrder);
+                client.CaptureException(error, new { items = RowsThatFail() });
+                client.Info("com lista", new { items = RowsThatFail(), ok = true });
+                Assert.True(client.Flush(TimeSpan.FromSeconds(5)));
+                var occurrence = Assert.Single(server.Errors());
+                Assert.Equal(1, occurrence.Attrs().GetProperty("items")[0].GetInt32());
+                var log = Assert.Single(server.Logs());
+                Assert.True(log.Attrs().GetProperty("ok").GetBoolean());
+                Assert.Equal(2, log.Attrs().GetProperty("items").GetArrayLength());
+                client.Close(TimeSpan.Zero);
+            }
+        }
+
+        [Fact]
+        public void TrackReturnsTheResultAndRethrowsTheAppErrorEvenWhenTheAttributesFail()
+        {
+            using (var server = new FakeIngest())
+            {
+                var client = TestClients.For(server);
+                Assert.Equal(42, client.Track("importar", () => 42, new { rows = RowsThatFail() }));
+                Assert.Throws<FormatException>(() => client.Track("falhar", () => int.Parse("x", System.Globalization.CultureInfo.InvariantCulture), new { rows = RowsThatFail() }));
+                Assert.True(client.Flush(TimeSpan.FromSeconds(5)));
+                var logs = server.Logs();
+                Assert.Equal(new[] { true, false }, logs.Select(item => item.Attrs().GetProperty("ok").GetBoolean()).ToArray());
+                Assert.Equal("System.FormatException", Assert.Single(server.Errors()).GetProperty("exception").Text("type"));
+                client.Close(TimeSpan.Zero);
+            }
+        }
+
+#if NETFRAMEWORK
+        [Fact]
+        public void AddsTls12WithoutOverridingTheSystemDefault()
+        {
+            var previous = System.Net.ServicePointManager.SecurityProtocol;
+            try
+            {
+                using (var server = new FakeIngest())
+                {
+                    System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)0;
+                    TestClients.For(server).Close(TimeSpan.Zero);
+                    Assert.Equal(0, (int)System.Net.ServicePointManager.SecurityProtocol);
+                    System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)192;
+                    TestClients.For(server).Close(TimeSpan.Zero);
+                    Assert.Equal(192 | 3072, (int)System.Net.ServicePointManager.SecurityProtocol);
+                }
+            }
+            finally
+            {
+                System.Net.ServicePointManager.SecurityProtocol = previous;
+            }
+        }
+#endif
+}
 }

@@ -10,7 +10,6 @@ namespace Oconde.Radar.Extensions.Logging
         private const string OriginalFormat = "{OriginalFormat}";
         private const string ScopeKey = "scope";
         private static readonly HashSet<string> HostingScopeKeys = new HashSet<string>(StringComparer.Ordinal) { "RequestId", "RequestPath", "ConnectionId", "SpanId", "TraceId", "ParentId" };
-        private static readonly string[] UnhandledCategories = { "Microsoft.AspNetCore.Diagnostics.", "Microsoft.AspNetCore.Server.", "Microsoft.Extensions.Hosting.Internal.Host" };
 
         private readonly string category;
         private readonly RadarClient client;
@@ -36,7 +35,6 @@ namespace Oconde.Radar.Extensions.Logging
                 {
                     Logger = category,
                     Exception = exception,
-                    Unhandled = exception != null && IsUnhandledCategory(category),
                 };
                 provider.Scopes?.ForEachScope((scope, properties) => AddScope(scope, properties), entry.Properties);
                 AddState(state, entry.Properties);
@@ -73,15 +71,6 @@ namespace Oconde.Radar.Extensions.Logging
             {
                 return string.Empty;
             }
-        }
-
-        private static bool IsUnhandledCategory(string category)
-        {
-            foreach (var prefix in UnhandledCategories)
-            {
-                if (category.StartsWith(prefix, StringComparison.Ordinal)) return true;
-            }
-            return false;
         }
 
         private static void AddState<TState>(TState state, IDictionary<string, object?> properties)

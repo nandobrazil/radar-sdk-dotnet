@@ -2,6 +2,7 @@ using System;
 #if NETSTANDARD
 using System.Threading;
 #else
+using System.Runtime.Remoting;
 using System.Runtime.Remoting.Messaging;
 #endif
 
@@ -23,19 +24,26 @@ namespace Oconde.Radar.Context
 #else
         private const string Slot = "Oconde.Radar.Context";
 
-        [Serializable]
-        private sealed class Holder
+        public static RadarContext? Current
         {
-            [NonSerialized]
-            public RadarContext? Value;
+            get
+            {
+                try
+                {
+                    return (CallContext.LogicalGetData(Slot) as ObjectHandle)?.Unwrap() as RadarContext;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
         }
-
-        public static RadarContext? Current => (CallContext.LogicalGetData(Slot) as Holder)?.Value;
 
         public static IDisposable Use(RadarContext? context)
         {
             var previous = CallContext.LogicalGetData(Slot);
-            CallContext.LogicalSetData(Slot, new Holder { Value = context });
+            if (context == null) CallContext.FreeNamedDataSlot(Slot);
+            else CallContext.LogicalSetData(Slot, new ObjectHandle(context));
             return new Disposer(() =>
             {
                 if (previous == null) CallContext.FreeNamedDataSlot(Slot);

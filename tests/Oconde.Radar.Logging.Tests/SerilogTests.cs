@@ -48,5 +48,25 @@ namespace Oconde.Radar.Logging.Tests
                 client.Close(TimeSpan.Zero);
             }
         }
-    }
+    
+        [Fact]
+        public void TreatsFrameworkReportsAsUnhandledAndLibraryErrorsAsLogs()
+        {
+            using (var server = new FakeIngest())
+            {
+                var client = Ingest.ClientFor(server);
+                var logger = LoggerFor(client);
+                logger.ForContext("SourceContext", "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware").Error(Ingest.Caught("escapou"), "An unhandled exception has occurred while executing the request.");
+                logger.ForContext("SourceContext", "Microsoft.EntityFrameworkCore.Database.Command").Error(Ingest.Caught("deadlock"), "Failed executing DbCommand");
+                var occurrence = Assert.Single(client.Sent(server, "error"));
+                Assert.False(occurrence.GetProperty("handled").GetBoolean());
+                Assert.Equal("escapou", occurrence.GetProperty("exception").Text("message"));
+                var log = Assert.Single(client.Sent(server, "log"));
+                Assert.Equal("error", log.Text("level"));
+                Assert.Equal("Failed executing DbCommand", log.Text("message"));
+                Assert.Equal("deadlock", log.Attrs().GetProperty("exception").Text("message"));
+                client.Close(TimeSpan.Zero);
+            }
+        }
+}
 }

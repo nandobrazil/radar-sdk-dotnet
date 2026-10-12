@@ -98,5 +98,26 @@ namespace Oconde.Radar.Tests
                 client.Close(TimeSpan.Zero);
             }
         }
-    }
+    
+        [Fact]
+        public void WaitsOutTheRetryWithoutSpinning()
+        {
+            using (var server = new FakeIngest())
+            {
+                server.Enqueue(503, new Dictionary<string, string> { ["Retry-After"] = "30" });
+                var client = TestClients.For(server);
+                for (var index = 0; index < 150; index++) client.Info("fila", new { index });
+                Assert.True(server.WaitFor(1, TimeSpan.FromSeconds(5)));
+                Thread.Sleep(300);
+                var process = Process.GetCurrentProcess();
+                var before = process.TotalProcessorTime;
+                Thread.Sleep(1000);
+                process.Refresh();
+                var used = process.TotalProcessorTime - before;
+                Assert.True(used < TimeSpan.FromMilliseconds(400), "CPU em 1 s: " + used.TotalMilliseconds + " ms");
+                Assert.Single(server.Requests);
+                client.Close(TimeSpan.Zero);
+            }
+        }
+}
 }

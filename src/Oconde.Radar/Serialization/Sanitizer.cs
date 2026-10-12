@@ -13,6 +13,7 @@ namespace Oconde.Radar.Serialization
         public const string LimitReached = "…[limite]";
         public const string Circular = "[circular]";
         public const string TooDeep = "[profundidade]";
+        public const string ReadFailed = "…[erro ao ler]";
         public const int MaxNodes = 2000;
 
         private static readonly object Skip = new object();
@@ -36,6 +37,7 @@ namespace Oconde.Radar.Serialization
             var scalar = Scalar(value);
             if (!ReferenceEquals(scalar, Skip)) return scalar;
             if (IsSkipped(value)) return Skip;
+            if (TryReadJson(value, out var plain)) return plain == null ? null : Visit(plain, depth, seen, budget);
             var type = value.GetType();
             if (!type.IsValueType && seen.Contains(value)) return Circular;
             if (depth >= Protocol.MaxDepth) return TooDeep;
@@ -55,9 +57,26 @@ namespace Oconde.Radar.Serialization
                 if (IsDescribed(type)) return Describe(type);
                 return VisitMembers(value, type, depth, seen, budget);
             }
+            catch (Exception)
+            {
+                return ReadFailed;
+            }
             finally
             {
                 if (!type.IsValueType) seen.Remove(value);
+            }
+        }
+
+        private static bool TryReadJson(object value, out object? plain)
+        {
+            try
+            {
+                return JsonTokens.TryRead(value, out plain);
+            }
+            catch (Exception)
+            {
+                plain = ReadFailed;
+                return true;
             }
         }
 
@@ -189,17 +208,42 @@ namespace Oconde.Radar.Serialization
         private static JsonObject VisitDictionary(IEnumerable<KeyValuePair<object?, object?>> entries, int depth, HashSet<object> seen, Budget budget)
         {
             var result = new JsonObject();
-            foreach (var entry in entries)
+            IEnumerator<KeyValuePair<object?, object?>>? enumerator = null;
+            try
             {
-                if (budget.Remaining <= 0)
+                enumerator = entries.GetEnumerator();
+                while (enumerator.MoveNext())
                 {
-                    result.Set("…", LimitReached);
-                    break;
+                    if (budget.Remaining <= 0)
+                    {
+                        result.Set("…", LimitReached);
+                        break;
+                    }
+                    var entry = enumerator.Current;
+                    var clean = Visit(entry.Value, depth + 1, seen, budget);
+                    if (!ReferenceEquals(clean, Skip)) result.Set(KeyText(entry.Key), clean);
                 }
-                var clean = Visit(entry.Value, depth + 1, seen, budget);
-                if (!ReferenceEquals(clean, Skip)) result.Set(KeyText(entry.Key), clean);
+            }
+            catch (Exception)
+            {
+                result.Set("…", ReadFailed);
+            }
+            finally
+            {
+                DisposeQuietly(enumerator);
             }
             return result;
+        }
+
+        private static void DisposeQuietly(object? enumerator)
+        {
+            try
+            {
+                (enumerator as IDisposable)?.Dispose();
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private static string KeyText(object? key)
@@ -212,9 +256,10 @@ namespace Oconde.Radar.Serialization
         private static JsonArray VisitSequence(IEnumerable sequence, int depth, HashSet<object> seen, Budget budget)
         {
             var items = new JsonArray();
-            var enumerator = sequence.GetEnumerator();
+            IEnumerator? enumerator = null;
             try
             {
+                enumerator = sequence.GetEnumerator();
                 var taken = 0;
                 while (taken < Protocol.ArrayItems && enumerator.MoveNext())
                 {
@@ -234,9 +279,14 @@ namespace Oconde.Radar.Serialization
                 }
                 return items;
             }
+            catch (Exception)
+            {
+                items.Add(ReadFailed);
+                return items;
+            }
             finally
             {
-                (enumerator as IDisposable)?.Dispose();
+                DisposeQuietly(enumerator);
             }
         }
 

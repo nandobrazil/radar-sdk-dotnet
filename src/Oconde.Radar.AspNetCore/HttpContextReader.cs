@@ -28,7 +28,7 @@ namespace Oconde.Radar.AspNetCore
             {
                 QueryString = request.QueryString.HasValue ? request.QueryString.Value!.TrimStart('?') : string.Empty,
                 Headers = headers,
-                ClientIp = context.Connection.RemoteIpAddress?.ToString(),
+                ClientIp = () => context.Connection.RemoteIpAddress?.ToString(),
                 RouteValues = () => RouteValues(context),
                 RoutePattern = () => Route(context),
             };

@@ -24,6 +24,8 @@ namespace Oconde.Radar
     {
         private const string CapturedMark = "Oconde.Radar.Captured";
         private const long MaxCheckInDurationMs = 7L * 86_400_000;
+        private const int SystemDefaultProtocols = 0;
+        private const int Tls12 = 3072;
         private static readonly TimeSpan ExitFlush = TimeSpan.FromSeconds(2);
         private readonly object gate = new object();
         private readonly HashSet<string> warned = new HashSet<string>();
@@ -109,13 +111,15 @@ namespace Oconde.Radar
             if (entry == null || !IsLevelEnabled(entry.Level) || IsOwnLog(entry.Logger)) return;
             var attributes = new Dictionary<string, object?>(entry.Properties, StringComparer.Ordinal);
             if (!Text.IsBlank(entry.Logger)) attributes["logger"] = entry.Logger;
-            if (entry.Exception == null)
+            var unhandled = entry.Unhandled || LogCategories.ReportsUnhandled(entry.Logger);
+            if (entry.Exception != null && !unhandled && LogCategories.IsLibrary(entry.Logger)) attributes["exception"] = entry.Exception;
+            else if (entry.Exception != null)
             {
-                EmitLog(entry.Level, entry.Message, attributes, null, null);
+                if (entry.Message.Length > 0) attributes["logMessage"] = entry.Message;
+                EmitError(entry.Exception, attributes, "error", !unhandled, null);
                 return;
             }
-            if (entry.Message.Length > 0) attributes["logMessage"] = entry.Message;
-            EmitError(entry.Exception, attributes, "error", !entry.Unhandled, null);
+            EmitLog(entry.Level, entry.Message, attributes, null, null);
         });
 
         public void SetUser(string? id = null, string? email = null, string? name = null) => Safely(() =>
@@ -372,7 +376,7 @@ namespace Oconde.Radar
 
         internal void EmitError(Exception exception, object? attributes, string level, bool handled, RadarContext? contextOverride)
         {
-            if (closed || exception == null || AlreadyCaptured(exception)) return;
+            if (closed || exception == null || WasCaptured(exception)) return;
             var context = contextOverride ?? ContextStore.Current;
             var record = new JsonObject();
             record.Set("type", "error");
@@ -388,6 +392,7 @@ namespace Oconde.Radar
             }
             record.Set("runtime", RuntimeInfo.Describe());
             if (attributes != null) record.Set("attrs", Attributes.Prepare(attributes, options.Redact));
+            if (AlreadyCaptured(exception)) return;
             Deliver(record);
         }
 
@@ -434,6 +439,18 @@ namespace Oconde.Radar
             return EventTransport.IsTransportThread;
         }
 
+        private static bool WasCaptured(Exception exception)
+        {
+            try
+            {
+                return exception.Data.Contains(CapturedMark);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         private bool AlreadyCaptured(Exception exception)
         {
             lock (gate)
@@ -453,12 +470,16 @@ namespace Oconde.Radar
 
         private static JsonObject Outcome(object? attributes, Stopwatch watch, bool ok)
         {
-            var record = Sanitizer.Sanitize(attributes) as JsonObject;
-            if (record == null)
+            JsonObject record;
+            try
             {
                 var value = Sanitizer.Sanitize(attributes);
+                record = value as JsonObject ?? new JsonObject();
+                if (value != null && !(value is JsonObject)) record.Set("value", value);
+            }
+            catch (Exception)
+            {
                 record = new JsonObject();
-                if (value != null) record.Set("value", value);
             }
             record.Set("durationMs", (long)Math.Round(watch.Elapsed.TotalMilliseconds));
             record.Set("ok", ok);
@@ -484,7 +505,9 @@ namespace Oconde.Radar
             if (!resolved.EnableTls12) return;
             try
             {
-                ServicePointManager.SecurityProtocol |= (SecurityProtocolType)3072;
+                var current = (int)ServicePointManager.SecurityProtocol;
+                if (current == SystemDefaultProtocols || (current & Tls12) != 0) return;
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)(current | Tls12);
             }
             catch (Exception)
             {

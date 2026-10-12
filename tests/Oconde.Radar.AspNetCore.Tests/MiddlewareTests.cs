@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -47,6 +50,11 @@ namespace Oconde.Radar.AspNetCore.Tests
             app.MapPost("/boom", (HttpContext context) => { throw new InvalidOperationException("quebrou"); });
             app.MapGet("/reset/{token}", (string token) => Results.Ok());
             app.MapGet("/healthz", () => Results.Ok("ok"));
+            app.MapGet("/slow", async (HttpContext context) =>
+            {
+                await Task.Delay(Timeout.Infinite, context.RequestAborted);
+                return Results.Ok();
+            });
             await app.StartAsync();
             return app;
         }
@@ -211,5 +219,59 @@ namespace Oconde.Radar.AspNetCore.Tests
                 client.Close(TimeSpan.Zero);
             }
         }
-    }
+    
+        [Fact]
+        public async Task LogsAClientThatGaveUpAs499WithoutAnOccurrence()
+        {
+            using (var server = new FakeIngest())
+            {
+                var client = ClientFor(server);
+                await using (var app = await Start(client))
+                {
+                    using (var cancel = new CancellationTokenSource(TimeSpan.FromMilliseconds(200)))
+                    {
+                        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => app.GetTestClient().GetAsync("/slow", cancel.Token));
+                    }
+                    var deadline = DateTime.UtcNow.AddSeconds(5);
+                    while (RequestLogs(server).Count == 0 && DateTime.UtcNow < deadline)
+                    {
+                        client.Flush(TimeSpan.FromSeconds(1));
+                        await Task.Delay(50);
+                    }
+                }
+                Assert.True(client.Flush(TimeSpan.FromSeconds(5)));
+                Assert.DoesNotContain(server.Events(), item => item.GetProperty("type").GetString() == "error");
+                var log = Assert.Single(RequestLogs(server));
+                Assert.Equal(499, log.GetProperty("attrs").GetProperty("status").GetInt32());
+                client.Close(TimeSpan.Zero);
+            }
+        }
+
+        [Fact]
+        public async Task ReadsTheClientIpAfterTheForwardedHeadersOfTheApp()
+        {
+            using (var server = new FakeIngest())
+            {
+                var client = ClientFor(server);
+                await using (var app = await Start(client, pipeline: application =>
+                {
+                    application.Use((context, next) =>
+                    {
+                        context.Connection.RemoteIpAddress = IPAddress.Loopback;
+                        return next(context);
+                    });
+                    application.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor });
+                }))
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Post, "/boom");
+                    request.Headers.Add("X-Forwarded-For", "203.0.113.9");
+                    await Assert.ThrowsAsync<InvalidOperationException>(() => app.GetTestClient().SendAsync(request));
+                }
+                Assert.True(client.Flush(TimeSpan.FromSeconds(5)));
+                var error = Assert.Single(server.Events(), item => item.GetProperty("type").GetString() == "error");
+                Assert.Equal("203.0.113.9", error.GetProperty("request").GetProperty("ip").GetString());
+                client.Close(TimeSpan.Zero);
+            }
+        }
+}
 }

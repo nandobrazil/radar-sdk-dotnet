@@ -15,7 +15,7 @@ namespace Oconde.Radar.Integration
         public string Path { get; }
         public string QueryString { get; set; } = string.Empty;
         public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        public string? ClientIp { get; set; }
+        public Func<string?>? ClientIp { get; set; }
         public Func<IDictionary<string, string>?>? RouteValues { get; set; }
         public Func<string?>? RoutePattern { get; set; }
     }

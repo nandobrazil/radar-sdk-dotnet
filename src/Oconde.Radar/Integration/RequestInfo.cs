@@ -40,13 +40,28 @@ namespace Oconde.Radar.Integration
             {
                 context.Route = RouteOf(context);
                 var values = ReadRouteValues(request);
+                var ip = ReadClientIp(request);
                 request.RouteValues = () => values;
+                request.ClientIp = () => ip;
                 request.RoutePattern = null;
             }
             catch (Exception)
             {
                 request.RouteValues = null;
+                request.ClientIp = null;
                 request.RoutePattern = null;
+            }
+        }
+
+        private static string? ReadClientIp(RadarRequest request)
+        {
+            try
+            {
+                return request.ClientIp?.Invoke();
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
 
@@ -97,7 +112,8 @@ namespace Oconde.Radar.Integration
             var pairs = Redactor.ParseQuery(query).GroupBy(pair => pair.Key).Select(group => new KeyValuePair<string, object?>(group.Key, group.Count() == 1 ? (object)group.First().Value : group.Select(pair => (object?)pair.Value).ToList())).ToList();
             if (pairs.Count > 0) info.Set("query", Record(pairs, mode));
             info.Set("headers", Headers(request.Headers, mode));
-            if (!string.IsNullOrEmpty(request.ClientIp)) info.Set("ip", request.ClientIp);
+            var ip = ReadClientIp(request);
+            if (!string.IsNullOrEmpty(ip)) info.Set("ip", ip);
             if (request.Headers.TryGetValue("user-agent", out var userAgent) && !string.IsNullOrEmpty(userAgent)) info.Set("userAgent", Text.Truncate(userAgent, 500));
             return info;
         }

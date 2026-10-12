@@ -26,6 +26,7 @@ namespace Oconde.Radar.Transport
         public const int GzipThresholdBytes = 8192;
         private static readonly TimeSpan MaxBackoff = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan UnauthorizedPause = TimeSpan.FromMinutes(10);
+        private static readonly TimeSpan MaxWait = TimeSpan.FromMinutes(1);
 
         [ThreadStatic]
         private static bool transportThread;
@@ -135,14 +136,20 @@ namespace Oconde.Radar.Transport
         private void Run()
         {
             transportThread = true;
+            var nextFlush = clock.Elapsed + settings.FlushInterval;
             while (true)
             {
                 lock (gate)
                 {
-                    if (stopped) return;
-                    if (queue.Count < settings.BatchSize) Monitor.Wait(gate, settings.FlushInterval);
+                    while (!stopped)
+                    {
+                        var wait = UntilNextSend(nextFlush);
+                        if (wait <= TimeSpan.Zero) break;
+                        Monitor.Wait(gate, wait < MaxWait ? wait : MaxWait);
+                    }
                     if (stopped) return;
                 }
+                nextFlush = clock.Elapsed + settings.FlushInterval;
                 try
                 {
                     SendOnce(settings.Timeout);
@@ -152,6 +159,15 @@ namespace Oconde.Radar.Transport
                     warn("internal", "envio ao Radar falhou: " + error.Message, false);
                 }
             }
+        }
+
+        private TimeSpan UntilNextSend(TimeSpan nextFlush)
+        {
+            if (inFlight) return settings.FlushInterval;
+            var now = clock.Elapsed;
+            var due = queue.Count >= settings.BatchSize ? now : nextFlush;
+            if (nextAttemptAt > due) due = nextAttemptAt;
+            return due - now;
         }
 
         private bool SendOnce(TimeSpan timeout)

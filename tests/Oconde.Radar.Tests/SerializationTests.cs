@@ -133,5 +133,23 @@ namespace Oconde.Radar.Tests
             Assert.Equal(new[] { "_truncated" }, big.Keys.ToArray());
             Assert.True(Encoding.UTF8.GetByteCount(JsonWriter.Write(big)) < 16384 + 100);
         }
-    }
+    
+        [Fact]
+        public void ReadsNewtonsoftTokensAsTheirValues()
+        {
+            var token = Newtonsoft.Json.Linq.JObject.Parse("{\"plan\":\"pro\",\"amount\":9.5,\"tags\":[\"a\",true,null],\"count\":3}");
+            Assert.Equal("{\"payload\":{\"plan\":\"pro\",\"amount\":9.5,\"tags\":[\"a\",true,null],\"count\":3}}", JsonWriter.Write((JsonObject)Sanitizer.Sanitize(new { payload = token })!));
+        }
+
+#if NET8_0_OR_GREATER
+        [Fact]
+        public void ReadsJsonDocumentsAndNodesAsTheirValues()
+        {
+            var element = System.Text.Json.JsonDocument.Parse("{\"plan\":\"pro\",\"amount\":9.9,\"tags\":[\"a\",true,null],\"count\":3}").RootElement;
+            var node = System.Text.Json.Nodes.JsonNode.Parse("{\"plan\":\"pro\",\"amount\":9.9,\"ok\":false}");
+            var record = (JsonObject)Sanitizer.Sanitize(new { element, node })!;
+            Assert.Equal("{\"element\":{\"plan\":\"pro\",\"amount\":9.9,\"tags\":[\"a\",true,null],\"count\":3},\"node\":{\"plan\":\"pro\",\"amount\":9.9,\"ok\":false}}", JsonWriter.Write(record));
+        }
+#endif
+}
 }

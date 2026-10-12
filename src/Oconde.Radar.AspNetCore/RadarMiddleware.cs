@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Diagnostics;
@@ -11,6 +12,7 @@ namespace Oconde.Radar.AspNetCore
     {
         internal const string HandledKey = "Oconde.Radar.Middleware";
         private const string RequestIdHeader = "x-request-id";
+        private const int ClientClosedRequest = 499;
         private readonly RequestDelegate next;
         private readonly RadarClient client;
 
@@ -53,6 +55,11 @@ namespace Oconde.Radar.AspNetCore
                 catch (Exception error)
                 {
                     scope.SetRoute(HttpContextReader.Route(context));
+                    if (IsClientGone(context, error))
+                    {
+                        scope.Finish(ClientClosedRequest);
+                        throw;
+                    }
                     scope.CaptureException(error);
                     scope.Finish(500);
                     throw;
@@ -61,6 +68,18 @@ namespace Oconde.Radar.AspNetCore
                 scope.SetRoute(handled != null ? HttpContextReader.RouteOfEndpoint(EndpointOf(handled)) ?? HttpContextReader.Route(context) : HttpContextReader.Route(context));
                 if (handled?.Error != null) scope.CaptureException(handled.Error);
                 scope.Finish(response.StatusCode);
+            }
+        }
+
+        private static bool IsClientGone(HttpContext context, Exception error)
+        {
+            try
+            {
+                return (error is OperationCanceledException || error is IOException) && context.RequestAborted.IsCancellationRequested;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
