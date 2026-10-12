@@ -149,7 +149,7 @@ namespace Oconde.Radar.Redaction
             return key;
         }
 
-        private static List<KeyValuePair<string, string>> ParseQuery(string query)
+        internal static List<KeyValuePair<string, string>> ParseQuery(string query)
         {
             var result = new List<KeyValuePair<string, string>>();
             foreach (var segment in query.Split('&'))

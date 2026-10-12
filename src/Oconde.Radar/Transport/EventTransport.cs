@@ -27,6 +27,9 @@ namespace Oconde.Radar.Transport
         private static readonly TimeSpan MaxBackoff = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan UnauthorizedPause = TimeSpan.FromMinutes(10);
 
+        [ThreadStatic]
+        private static bool transportThread;
+
         private readonly TransportTarget target;
         private readonly TransportSettings settings;
         private readonly IHttpSender sender;
@@ -49,6 +52,8 @@ namespace Oconde.Radar.Transport
             this.warn = warn;
             new Thread(Run) { IsBackground = true, Name = "oconde-radar" }.Start();
         }
+
+        public static bool IsTransportThread => transportThread;
 
         public int Pending
         {
@@ -129,6 +134,7 @@ namespace Oconde.Radar.Transport
 
         private void Run()
         {
+            transportThread = true;
             while (true)
             {
                 lock (gate)

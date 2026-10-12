@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 #endif
 using Oconde.Radar.Configuration;
 using Oconde.Radar.Context;
+using Oconde.Radar.Integration;
 using Oconde.Radar.Json;
 using Oconde.Radar.Redaction;
 using Oconde.Radar.Runtime;
@@ -34,7 +35,7 @@ namespace Oconde.Radar
 
         public bool IsEnabled => transport != null && !closed;
 
-        internal bool IsActive => !closed && (transport != null || options.Console);
+        public bool IsActive => !closed && (transport != null || options.Console);
 
         internal ResolvedOptions Settings => options;
 
@@ -100,6 +101,22 @@ namespace Oconde.Radar
         public void Log(RadarLevel level, string message, object? attributes = null) => Safely(() => EmitLog(level, message, attributes, null, null));
 
         public void CaptureException(Exception exception, object? attributes = null) => Safely(() => EmitError(exception, attributes, "error", true, null));
+
+        public bool IsLevelEnabled(RadarLevel level) => IsActive && level >= options.MinLevel;
+
+        public void Write(RadarLogEntry entry) => Safely(() =>
+        {
+            if (entry == null || !IsLevelEnabled(entry.Level) || IsOwnLog(entry.Logger)) return;
+            var attributes = new Dictionary<string, object?>(entry.Properties, StringComparer.Ordinal);
+            if (!Text.IsBlank(entry.Logger)) attributes["logger"] = entry.Logger;
+            if (entry.Exception == null)
+            {
+                EmitLog(entry.Level, entry.Message, attributes, null, null);
+                return;
+            }
+            if (entry.Message.Length > 0) attributes["logMessage"] = entry.Message;
+            EmitError(entry.Exception, attributes, "error", !entry.Unhandled, null);
+        });
 
         public void SetUser(string? id = null, string? email = null, string? name = null) => Safely(() =>
         {
@@ -304,12 +321,43 @@ namespace Oconde.Radar
 
         public void Dispose() => Close(ExitFlush);
 
+        public RadarRequestScope BeginRequest(RadarRequest request, string? incomingRequestId)
+        {
+            var context = new RadarContext(RequestIds.From(incomingRequestId), request);
+            IDisposable restore;
+            try
+            {
+                restore = ContextStore.Use(context);
+            }
+            catch (Exception)
+            {
+                restore = new Disposer(() => { });
+            }
+            return new RadarRequestScope(this, context, restore);
+        }
+
         internal void CaptureUnhandled(Exception exception, bool fatal) => Safely(() => EmitError(exception, null, fatal ? "fatal" : "error", false, null));
 
-        internal void EmitLog(RadarLevel level, string? message, object? attributes, JsonObject? request, RedactMode? mode)
+        internal void CaptureRequestException(Exception exception, RadarContext context) => Safely(() => EmitError(exception, null, "error", false, context));
+
+        internal void FinishRequest(RadarContext context, int status) => Safely(() =>
+        {
+            var request = context.Request;
+            if (request == null || !RequestFilters.ShouldLog(options, request.Path, context.Route)) return;
+            var attrs = new JsonObject();
+            attrs.Set("method", request.Method.ToUpperInvariant());
+            if (context.Route != null) attrs.Set("route", context.Route);
+            if (options.RequestDetail == RequestDetail.Full) attrs.Set("path", RequestInfo.MaskedPath(request, context.Route, options.Redact));
+            attrs.Set("status", (long)status);
+            attrs.Set("durationMs", context.ElapsedMs);
+            if (options.Sample < 1) attrs.Set("sampleRate", options.Sample);
+            EmitLog(status >= 500 ? RadarLevel.Error : status >= 400 ? RadarLevel.Warn : RadarLevel.Info, "http.request", attrs, null, null, context);
+        });
+
+        internal void EmitLog(RadarLevel level, string? message, object? attributes, JsonObject? request, RedactMode? mode, RadarContext? contextOverride = null)
         {
             if (closed || level < options.MinLevel) return;
-            var context = ContextStore.Current;
+            var context = contextOverride ?? ContextStore.Current;
             var record = new JsonObject();
             record.Set("type", "log");
             record.Set("ts", NowMs());
@@ -335,6 +383,7 @@ namespace Oconde.Radar
             if (context != null)
             {
                 record.Set("requestId", context.RequestId);
+                if (context.Request != null) record.Set("request", RequestInfo.Build(context.Request, RequestInfo.RouteOf(context), options.Redact, options.RequestDetail));
                 if (context.User != null) record.Set("user", context.User);
             }
             record.Set("runtime", RuntimeInfo.Describe());
@@ -377,6 +426,12 @@ namespace Oconde.Radar
             catch (Exception)
             {
             }
+        }
+
+        private static bool IsOwnLog(string? logger)
+        {
+            if (logger != null && (logger == SdkInfo.Name || logger.StartsWith(SdkInfo.Name + ".", StringComparison.Ordinal))) return true;
+            return EventTransport.IsTransportThread;
         }
 
         private bool AlreadyCaptured(Exception exception)

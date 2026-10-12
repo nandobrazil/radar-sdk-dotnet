@@ -10,5 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Oconde.Radar.Tests" Key="$(RadarPublicKey)" />
+    <InternalsVisibleTo Include="Oconde.Radar.AspNetCore.Tests" Key="$(RadarPublicKey)" />
+    <InternalsVisibleTo Include="Oconde.Radar.Logging.Tests" Key="$(RadarPublicKey)" />
   </ItemGroup>
 </Project>
